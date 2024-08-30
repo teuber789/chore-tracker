@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "./gen";
+
+// Don't forget: https://protobuf.dev/programming-guides/style/#file-structure
+
+message Child {
+  uint64 id = 1;
+  string name = 2;
+  uint32 age = 3;
+}
+
+message Chore {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+}
+
+message ChoreCompletion {
+  uint64 id = 1;
+  uint64 child_id = 2;
+  uint64 chore_id = 3;
+  fixed32 completed_timestamp = 4;
+  bool paid = 5;
+}
+
+message AddChildRequest {
+  string name = 1;
+  uint32 age = 2;
+}
+
+message CreateChoreRequest {
+  string name = 1;
+  string description = 2;
+  double price = 3;
+}
+
+message DeleteChoreRequest {
+  uint64 chore_id = 1;
+}
+
+// Source: https://cloud.google.com/apis/design/design_patterns#list_pagination
+message Pageable {
+  string page_token = 1;
+  uint32 page_size = 2;
+}
+
+message PageMetadata {
+  string next_page_token = 1;
+}
+
+message GetChoresRequest {
+  Pageable pageable = 1;
+  uint64 child_id = 2;
+}
+
+message GetChoresResponse {
+  PageMetadata page_metadata = 1;
+  repeated Chore chores = 2;
+}
+
+message GetCompletedChoresResponse {
+  PageMetadata page_metadata = 1;
+  repeated ChoreCompletion chore_completions = 2;
+}
+
+message MarkChoreCompletedRequest {
+    uint64 chore_id = 1;
+    uint64 child_id = 2;
+}
+
+service ChoreTracker {
+  rpc AddChild(AddChildRequest) returns (Child) {}
+  // TODO Other methods for managing children. Skipping these for now.
+  rpc CreateChore(CreateChoreRequest) returns (Chore) {}
+  rpc DeleteChore(DeleteChoreRequest) returns (google.protobuf.Empty) {}
+  rpc GetChores(GetChoresRequest) returns (GetChoresResponse) {}
+  rpc GetCompletedChores(GetChoresRequest) returns (GetCompletedChoresResponse) {}
+  rpc MarkChoreCompleted(MarkChoreCompletedRequest) returns (google.protobuf.Empty) {}
+}
