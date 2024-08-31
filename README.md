@@ -83,3 +83,4 @@ These are the features I intentionally chose to ignore for the sake of this prot
   - Replaced in-memory storage with DB
 - 31 Aug 2024:
   - Added HTTP server
+  - Added multi-tenancy to make load testing easier (aka families)
