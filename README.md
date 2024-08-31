@@ -67,7 +67,6 @@ These are the features I intentionally chose to ignore for the sake of this prot
 - Testing
 - Formatting / linting (and associated checks)
 - Better dependency injection (wire?)
-- Multi-tenancy (multiple families could use it)
 - Chores don't show up in the list of available chores after a child has completed them.
 - Some chores can be performed more than once per day.
 - Chore availability - certain chores might only be available on certain days, and therefore can only be completed on those days.
