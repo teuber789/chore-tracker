@@ -72,4 +72,6 @@ These are the features I intentionally chose to ignore for the sake of this prot
 # Work Log
 
 - Evening of 29 Aug 2024: Added simple GRPC API for tracking chores. No DB, all storage is done in-memory.
-- Evening of 30 Aug 2024: Added frontend and envoy proxy; connected all to ensure they are working together.
+- Evening of 30 Aug 2024:
+  - Added frontend and envoy proxy; connected all to ensure they are working together.
+  - Replaced in-memory storage with DB
