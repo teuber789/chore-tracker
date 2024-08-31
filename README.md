@@ -38,11 +38,11 @@ The following are extremely useful for debugging, but not strictly necessary:
 
 - Generate the grpc clients and their associated protobuf files:
   - Run `make protos`
+- In a new terminal, run the docker compose stack:
+  - `docker compose -f infra/docker-compose.yaml up`
 - In a new terminal, run the backend:
   - `cd backend`
   - `go run main.go`
-- In a new terminal, run the envoy proxy:
-  - `make envoy`
 - In a new terminal, build the frontend for browser use and then serve locally:
   - `cd frontend`
   - `make dist`
@@ -54,17 +54,20 @@ The following are extremely useful for debugging, but not strictly necessary:
 These are the features I intentionally chose to ignore for the sake of this prototype. In the real world, these would obviously be addressed.
 
 - Use a database instead of in-memory
-- Real pagination
+- Real pagination (keyset instead of offset, with real next tokens)
 - Authentication and authorization
 - Permission-based access control (adults are allowed to create chores and children aren't, etc.)
 - Logging
 - Observability
 - Metrics
 - Testing
+- Formatting / linting (and associated checks)
+- Better dependency injection (wire?)
 - Multi-tenancy (multiple families could use it)
 - Chores don't show up in the list of available chores after a child has completed them.
 - Some chores can be performed more than once per day.
 - Chore availability - certain chores might only be available on certain days, and therefore can only be completed on those days.
+- Bug where all chores of a certain type are completed if multiple are performed
 
 # Work Log
 

@@ -1,0 +1,7 @@
+BEGIN;
+
+DROP TABLE IF EXISTS chore_completion;
+DROP TABLE IF EXISTS chore;
+DROP TABLE IF EXISTS child;
+
+COMMIT;
