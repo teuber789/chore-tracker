@@ -1,3 +1,19 @@
+.PHONY: compose-down
+compose-down:
+	docker compose -f infra/docker-compose.yaml down
+
+.PHONY: compose-up
+compose-up:
+	docker compose -f infra/docker-compose.yaml up
+
+.PHONY: grpc
+grpc:
+	cd backend && go run main.go -server=grpc
+
+.PHONY: http
+http:
+	cd backend && go run main.go -server=http
+
 # TODO IRL, these would be separate repos, so there wouldn't be hardcoded paths to subdirectories.
 .PHONY: protos
 protos:

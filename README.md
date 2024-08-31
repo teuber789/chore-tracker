@@ -36,18 +36,22 @@ The following are extremely useful for debugging, but not strictly necessary:
 
 # Getting Started
 
+> **Note:** This project exposes either a GRPC or an HTTP server for comparison purposes.
+
 - Generate the grpc clients and their associated protobuf files:
   - Run `make protos`
 - In a new terminal, run the docker compose stack:
-  - `docker compose -f infra/docker-compose.yaml up`
-- In a new terminal, run the backend:
-  - `cd backend`
-  - `go run main.go`
+  - `make compose-up`
+- In a new terminal, run the backend you want:
+  - `make [grpc|http]`. For example, to run the HTTP service, you would run `make http`.
+
+> ⚠️ The frontend only works with the GRPC service. If you are using the HTTP service, there's no need to perform the next steps.
+
 - In a new terminal, build the frontend for browser use and then serve locally:
   - `cd frontend`
   - `make dist`
   - `make serve`
-- Open Chrome to `http://localhost:3000`
+  - Open Chrome to `http://localhost:3000`
 
 # Future Development
 
@@ -68,6 +72,8 @@ These are the features I intentionally chose to ignore for the sake of this prot
 - Some chores can be performed more than once per day.
 - Chore availability - certain chores might only be available on certain days, and therefore can only be completed on those days.
 - Bug where all chores of a certain type are completed if multiple are performed
+- Graceful HTTP server shutdown
+- Intermediate representation for structs instead of reusing GRPC structs everywhere
 
 # Work Log
 
@@ -75,3 +81,5 @@ These are the features I intentionally chose to ignore for the sake of this prot
 - Evening of 30 Aug 2024:
   - Added frontend and envoy proxy; connected all to ensure they are working together.
   - Replaced in-memory storage with DB
+- 31 Aug 2024:
+  - Added HTTP server
