@@ -14,6 +14,7 @@ func NewHttpRouter(store ChoreTrackerStore) (*mux.Router, error) {
 	s := &httpSrv{store: store}
 
 	r := mux.NewRouter()
+	r.HandleFunc("/families", s.addFamily).Methods("POST")
 	r.HandleFunc("/children", s.addChild).Methods("POST")
 	r.HandleFunc("/chores", s.createChore).Methods("POST")
 	r.HandleFunc("/chores/{id}", s.deleteChore).Methods("DELETE")
@@ -29,6 +30,27 @@ type httpSrv struct {
 }
 
 // IRL, we would serialize and deserialize to an intermediate representation instead of GRPC structs
+func (s *httpSrv) addFamily(w http.ResponseWriter, r *http.Request) {
+	var body gen.AddFamilyRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fam, err := s.store.AddFamily(context.TODO(), &body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(&fam)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func (s *httpSrv) addChild(w http.ResponseWriter, r *http.Request) {
 	var body gen.AddChildRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -71,6 +93,8 @@ func (s *httpSrv) createChore(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// IRL, this would have permissions checks to ensure someone doesn't delete
+// a chore they aren't supposed to.
 func (s *httpSrv) deleteChore(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
@@ -95,12 +119,17 @@ func (s *httpSrv) getChoresRequest(r *http.Request) (*gen.GetChoresRequest, erro
 	size := uint32(sizeInt)
 	p := gen.Pageable{PageToken: token, PageSize: size}
 
+	famId, err := strconv.ParseUint(q.Get("familyId"), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
 	childId, err := strconv.ParseUint(q.Get("childId"), 10, 64)
 	if err != nil {
 		return nil, err
 	}
 
-	return &gen.GetChoresRequest{Pageable: &p, ChildId: childId}, nil
+	return &gen.GetChoresRequest{Pageable: &p, FamilyId: famId, ChildId: childId}, nil
 }
 
 // IRL, this handler would do more error checking
@@ -148,6 +177,12 @@ func (s *httpSrv) markChoreCompleted(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	// IRL, handle failures better
+	famId, err := strconv.ParseUint(q.Get("familyId"), 10, 64)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	childId, err := strconv.ParseUint(q.Get("childId"), 10, 64)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -160,7 +195,7 @@ func (s *httpSrv) markChoreCompleted(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := gen.MarkChoreCompletedRequest{ChildId: childId, ChoreId: choreId}
+	req := gen.MarkChoreCompletedRequest{FamilyId: famId, ChildId: childId, ChoreId: choreId}
 	err = s.store.MarkChoreCompleted(context.TODO(), &req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

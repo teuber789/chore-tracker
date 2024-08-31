@@ -39,6 +39,7 @@ func NewChoreTrackerStore() (*store, error) {
 // IRL, transport layer structs wouldn't be part of the interface for the storage layer.
 type ChoreTrackerStore interface {
 	Close() error
+	AddFamily(ctx context.Context, req *gen.AddFamilyRequest) (*gen.Family, error)
 	AddChild(ctx context.Context, req *gen.AddChildRequest) (*gen.Child, error)
 	CreateChore(ctx context.Context, req *gen.CreateChoreRequest) (*gen.Chore, error)
 	DeleteChore(ctx context.Context, id uint64) error
@@ -55,27 +56,39 @@ func (s *store) Close() error {
 	return s.db.Close()
 }
 
-func (s *store) AddChild(ctx context.Context, req *gen.AddChildRequest) (*gen.Child, error) {
-	q := "INSERT INTO child (name, age) VALUES ($1, $2) RETURNING id"
+func (s *store) AddFamily(ctx context.Context, req *gen.AddFamilyRequest) (*gen.Family, error) {
+	q := "INSERT INTO family (name) VALUES ($1) RETURNING id"
 	id := uint64(0)
-	err := s.db.QueryRow(q, req.Name, req.Age).Scan(&id)
+	err := s.db.QueryRow(q, req.Name).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
 
-	c := &gen.Child{Id: id, Name: req.Name, Age: req.Age}
+	f := &gen.Family{Id: id, Name: req.Name}
+	return f, nil
+}
+
+func (s *store) AddChild(ctx context.Context, req *gen.AddChildRequest) (*gen.Child, error) {
+	q := "INSERT INTO child (family_id, name, age) VALUES ($1, $2, $3) RETURNING id"
+	id := uint64(0)
+	err := s.db.QueryRow(q, req.FamilyId, req.Name, req.Age).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	c := &gen.Child{Id: id, FamilyId: req.FamilyId, Name: req.Name, Age: req.Age}
 	return c, nil
 }
 
 func (s *store) CreateChore(ctx context.Context, req *gen.CreateChoreRequest) (*gen.Chore, error) {
-	q := "INSERT INTO chore (name, description, price) VALUES ($1, $2, $3) RETURNING id"
+	q := "INSERT INTO chore (family_id, name, description, price) VALUES ($1, $2, $3, $4) RETURNING id"
 	id := uint64(0)
-	err := s.db.QueryRow(q, req.Name, req.Description, req.Price).Scan(&id)
+	err := s.db.QueryRow(q, req.FamilyId, req.Name, req.Description, req.Price).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
 
-	c := &gen.Chore{Id: id, Name: req.Name, Description: req.Description, Price: req.Price}
+	c := &gen.Chore{Id: id, FamilyId: req.FamilyId, Name: req.Name, Description: req.Description, Price: req.Price}
 	return c, nil
 }
 
@@ -97,10 +110,11 @@ func (s *store) GetChores(ctx context.Context, req *gen.GetChoresRequest) (*gen.
 	// Execute query
 	q := `SELECT id, name, description, price
 		FROM chore
+		WHERE family_id = $1
 		ORDER BY created_at DESC
-		OFFSET $1
-		LIMIT $2`
-	rows, err := s.db.Query(q, offset, n)
+		OFFSET $2
+		LIMIT $3`
+	rows, err := s.db.Query(q, req.FamilyId, offset, n)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +124,7 @@ func (s *store) GetChores(ctx context.Context, req *gen.GetChoresRequest) (*gen.
 	var arr []*gen.Chore = make([]*gen.Chore, 0, n)
 	for rows.Next() {
 		c := gen.Chore{}
-		err = rows.Scan(&c.Id, &c.Name, &c.Description, &c.Price)
+		err = rows.Scan(&c.Id, &c.FamilyId, &c.Name, &c.Description, &c.Price)
 		if err != nil {
 			return nil, err
 		}
@@ -140,13 +154,14 @@ func (s *store) GetCompletedChores(ctx context.Context, req *gen.GetChoresReques
 	offset := uint32(page) * n
 
 	// Execute query
-	q := `SELECT id, child_id, chore_id, completed_timestamp, paid
+	q := `SELECT id, family_id, child_id, chore_id, completed_timestamp, paid
 		FROM chore_completion
-		WHERE child_id = $1
+		WHERE family_id = $1
+		AND child_id = $2
 		ORDER BY created_at DESC
-		OFFSET $2
-		LIMIT $3`
-	rows, err := s.db.Query(q, req.ChildId, offset, n)
+		OFFSET $3
+		LIMIT $4`
+	rows, err := s.db.Query(q, req.FamilyId, req.ChildId, offset, n)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +171,7 @@ func (s *store) GetCompletedChores(ctx context.Context, req *gen.GetChoresReques
 	var arr []*gen.ChoreCompletion = make([]*gen.ChoreCompletion, 0, n)
 	for rows.Next() {
 		c := gen.ChoreCompletion{}
-		err = rows.Scan(&c.Id, &c.ChildId, &c.ChoreId, &c.CompletedTimestamp, &c.Paid)
+		err = rows.Scan(&c.Id, &c.FamilyId, &c.ChildId, &c.ChoreId, &c.CompletedTimestamp, &c.Paid)
 		if err != nil {
 			return nil, err
 		}
@@ -180,9 +195,10 @@ func (s *store) MarkChoreCompleted(ctx context.Context, req *gen.MarkChoreComple
 	now := time.Now().UnixMilli()
 	q := `UPDATE chore_completion
 		SET completed_timestamp = $1
-		WHERE child_id = $2
-		AND chore_id = $3`
-	_, err := s.db.Exec(q, now, req.ChildId, req.ChoreId)
+		WHERE family_id = $2
+		AND child_id = $3
+		AND chore_id = $4`
+	_, err := s.db.Exec(q, now, req.FamilyId, req.ChildId, req.ChoreId)
 	if err != nil {
 		return err
 	}
