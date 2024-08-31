@@ -1,0 +1,16 @@
+{
+    "name": "chore-tracker-frontend",
+    "version": "0.1.0",
+    "description": "Chore Tracker Frontend",
+    "main": "client.js",
+    "devDependencies": {
+        "@grpc/grpc-js": "~1.0.5",
+        "@grpc/proto-loader": "~0.5.4",
+        "async": "~1.5.2",
+        "google-protobuf": "~3.21.4",
+        "grpc-web": "~1.5.0",
+        "lodash": "~4.17.0",
+        "webpack": "~5.82.1",
+        "webpack-cli": "~5.1.1"
+    }
+}
