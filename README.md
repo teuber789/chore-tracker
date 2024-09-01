@@ -6,8 +6,11 @@ A simple app that tracks the chores a child can do for their parents in order to
 
 For convenience, this project is set up as a [monorepository](https://circleci.com/blog/monorepo-dev-practices/). In the real world, it would likely be split into several repos instead.
 
+- [`api`](./api/) contains all of the `.proto` files necessary for generating the GPRC API.
 - [`backend`](./backend/) contains all of the code for the Golang-based GRPC web service.
 - [`frontend`](./frontend/) contains all of the code for the React-based frontend.
+- [`infra`](./infra/) contains all infrastructure-related code and configuration.
+- [`load`](./load/) contains a small application to perform load testing.
 
 # Prerequisites
 
@@ -83,3 +86,4 @@ These are the features I intentionally chose to ignore for the sake of this prot
 - 31 Aug 2024:
   - Added HTTP server
   - Added multi-tenancy to make load testing easier (aka families)
+  - Added load test module. WIP; executes a long-running process and terminates it when the context times out.
