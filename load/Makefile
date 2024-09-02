@@ -1,4 +1,3 @@
-.PHONY: grpc-load
-grpc-load:
-	cd grpc-web-load && \
-	npm i
+.PHONY: prereqs
+prereqs:
+	cd runner && npm i

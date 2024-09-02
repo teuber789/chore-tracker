@@ -50,6 +50,7 @@ func run(ctx context.Context, rawCmd string) (*result, error) {
 func main() {
 	// Read in args
 	serverType := flag.String("server", "", "Specifies whether to load test the GRPC or the HTTP server. Valid values are 'grpc' and 'http'.")
+	host := flag.String("host", "127.0.0.1", "The host to run the load tests against. Defaults to localhost.")
 	users := flag.Int("users", 1, "The number of concurrent users to mimic. Must be an integer greater than 0.")
 	seconds := flag.Int("seconds", 300, "The number of seconds the test should last. Must be an integer greater than 0.")
 	flag.Parse()
@@ -75,7 +76,7 @@ func main() {
 	// Launch a process per simulated user
 	g, ctx := errgroup.WithContext(ctx)
 	results := make([]*result, *users)
-	rawCmd := fmt.Sprintf("cd runner && node %s", script)
+	rawCmd := fmt.Sprintf("cd runner && node %s %s", script, *host)
 
 	for i := 0; i < *users; i++ {
 		g.Go(func() error {

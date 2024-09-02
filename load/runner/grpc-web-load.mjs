@@ -86,9 +86,11 @@ function getCompletedChores(client, child) {
 // Runs the load test sequence repeatedly until SIGKILL occurs.
 // TODO Simplify and clean up
 async function doLoadTest() {
+    const host = process.argv[2];
+
     try {
         // IRL, address and port would be env vars
-        const client = new grpc.ChoreTrackerClient('http://localhost:8080');
+        const client = new grpc.ChoreTrackerClient(`http://${host}:8080`);
 
         // Metrics
         let itersFailed = 0;

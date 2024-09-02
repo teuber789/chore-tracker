@@ -91,3 +91,4 @@ These are the features I intentionally chose to ignore for the sake of this prot
   - Added metrics to load test script
   - Added load tests cript for HTTP (with metrics)
   - Changed the server to run in a Docker container. This will make it easier to load test.
+  - Added a host parameter to the load test binary. This makes possible to test against a service running on another machine.

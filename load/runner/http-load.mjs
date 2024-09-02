@@ -2,8 +2,9 @@
 
 import { randomBytes } from 'node:crypto';
 
-// IRL, these would be env vars
-const baseUrl = "http://127.0.0.1:8081";
+// IRL, this would be an env vars
+const host = process.argv[2];
+const baseUrl = `http://${host}:8081`;
 
 async function addFamily() {
     const familyName = randomBytes(8).toString('hex');
