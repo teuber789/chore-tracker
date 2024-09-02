@@ -11,10 +11,10 @@ import (
 	"github.com/teuber789/chore-tracker/internal/gen"
 )
 
-// IRL, creds would be injected as environment variables instead of hardcoded.
+// IRL, these would be injected as environment variables instead of hardcoded.
 const (
 	dbname   = "chore_tracker"
-	host     = "127.0.0.1"
+	host     = "db"
 	port     = 5432
 	user     = "chore-tracker-service"
 	password = "choretrackerservicepassword"

@@ -1,0 +1,23 @@
+version: '3.9'
+
+include:
+  - docker-compose-db.yaml
+
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.22.0
+    ports:
+      - 8080:8080
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+  server:
+    image: teuber789/grpc-server
+    depends_on:
+      db:
+        condition: service_healthy
+      envoy:
+        condition: service_started
+    build: ../backend
+    command: ./server -server=grpc
+    ports:
+      - 8081:8081

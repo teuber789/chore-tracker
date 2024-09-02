@@ -43,11 +43,9 @@ The following are extremely useful for debugging, but not strictly necessary:
 
 - Generate the grpc clients and their associated protobuf files:
   - Run `make protos`
-- In a new terminal, run the docker compose stack:
-  - `make compose-up`
-- In a new terminal, run the backend you want:
-  - `cd backend`
-  - `make [grpc|http]`. For example, to run the HTTP service, you would run `make http`.
+- In a new terminal, run the docker compose for the backend service you want:
+  - `make [grpc|http]-up`. For example, to run the HTTP service, you would run `make http-up`.
+- When you're done and want to tear down the stack, simply run `make [grpc|http]-down`. For example, if you were running the HTTP server and are now done, run `make http-down`.
 
 > ⚠️ The frontend only works with the GRPC service. If you are using the HTTP service, there's no need to perform the next steps.
 
@@ -92,3 +90,4 @@ These are the features I intentionally chose to ignore for the sake of this prot
   - Added load test script for GRPC
   - Added metrics to load test script
   - Added load tests cript for HTTP (with metrics)
+  - Changed the server to run in a Docker container. This will make it easier to load test.

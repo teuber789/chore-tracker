@@ -1,0 +1,15 @@
+version: '3.9'
+
+include:
+  - docker-compose-db.yaml
+
+services:
+  server:
+    image: teuber789/http-server
+    depends_on:
+      db:
+        condition: service_healthy
+    build: ../backend
+    command: ./server -server=http
+    ports:
+      - 8081:8081

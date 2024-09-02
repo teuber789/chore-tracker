@@ -4,20 +4,19 @@ services:
 
   db:
     image: postgres
-    restart: always
-    # set shared memory limit when using docker-compose
-    shm_size: 1gb
     # IRL, these would not be hardcoded. They would be injected as environment variables.
     environment:
       POSTGRES_DB: chore_tracker
       POSTGRES_PASSWORD: choretrackerservicepassword
       POSTGRES_USER: chore-tracker-service
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U chore-tracker-service -d chore_tracker" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
     ports:
       - 5432:5432
-
-  envoy:
-    image: envoyproxy/envoy:v1.22.0
-    ports:
-      - 8080:8080
-    volumes:
-      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 1gb
