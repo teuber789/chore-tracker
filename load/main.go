@@ -62,7 +62,7 @@ func main() {
 	// Launch a process per simulated user
 	g, ctx := errgroup.WithContext(ctx)
 	results := make([]*result, *users)
-	rawCmd := "cd grpc-web-load && node grpc-web-load.mjs"
+	rawCmd := "cd runner && node grpc-web-load.mjs"
 
 	for i := 0; i < *users; i++ {
 		g.Go(func() error {

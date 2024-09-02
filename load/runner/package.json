@@ -1,8 +1,7 @@
 {
-    "name": "chore-tracker-grpc-web-load",
+    "name": "chore-tracker-load-runner",
     "version": "0.1.0",
-    "description": "Chore Tracker GRPC Web Load",
-    "main": "grpc-web-load.mjs",
+    "description": "Chore Tracker Load Runner",
     "devDependencies": {
         "@grpc/grpc-js": "~1.0.5",
         "@grpc/proto-loader": "~0.5.4",

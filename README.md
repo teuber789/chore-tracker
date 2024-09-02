@@ -90,3 +90,4 @@ These are the features I intentionally chose to ignore for the sake of this prot
   - Added load test module. WIP; executes a long-running process and terminates it when the context times out.
 - 2 Sep 2024:
   - Added load test script for GRPC
+  - Added metrics to load test script
