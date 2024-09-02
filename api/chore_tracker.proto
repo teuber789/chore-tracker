@@ -31,7 +31,7 @@ message ChoreCompletion {
   uint64 family_id = 2;
   uint64 child_id = 3;
   uint64 chore_id = 4;
-  fixed32 completed_timestamp = 5;
+  uint64 completed_timestamp = 5;
   bool paid = 6;
 }
 

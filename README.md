@@ -46,6 +46,7 @@ The following are extremely useful for debugging, but not strictly necessary:
 - In a new terminal, run the docker compose stack:
   - `make compose-up`
 - In a new terminal, run the backend you want:
+  - `cd backend`
   - `make [grpc|http]`. For example, to run the HTTP service, you would run `make http`.
 
 > ⚠️ The frontend only works with the GRPC service. If you are using the HTTP service, there's no need to perform the next steps.
@@ -87,3 +88,5 @@ These are the features I intentionally chose to ignore for the sake of this prot
   - Added HTTP server
   - Added multi-tenancy to make load testing easier (aka families)
   - Added load test module. WIP; executes a long-running process and terminates it when the context times out.
+- 2 Sep 2024:
+  - Added load test script for GRPC

@@ -108,7 +108,7 @@ func (s *store) GetChores(ctx context.Context, req *gen.GetChoresRequest) (*gen.
 	offset := uint32(page) * n
 
 	// Execute query
-	q := `SELECT id, name, description, price
+	q := `SELECT id, family_id, name, description, price
 		FROM chore
 		WHERE family_id = $1
 		ORDER BY created_at DESC
@@ -193,12 +193,8 @@ func (s *store) GetCompletedChores(ctx context.Context, req *gen.GetChoresReques
 
 func (s *store) MarkChoreCompleted(ctx context.Context, req *gen.MarkChoreCompletedRequest) error {
 	now := time.Now().UnixMilli()
-	q := `UPDATE chore_completion
-		SET completed_timestamp = $1
-		WHERE family_id = $2
-		AND child_id = $3
-		AND chore_id = $4`
-	_, err := s.db.Exec(q, now, req.FamilyId, req.ChildId, req.ChoreId)
+	q := `INSERT INTO chore_completion (family_id, child_id, chore_id, completed_timestamp, paid) VALUES($1, $2, $3, $4, $5)`
+	_, err := s.db.Exec(q, req.FamilyId, req.ChildId, req.ChoreId, now, false)
 	if err != nil {
 		return err
 	}

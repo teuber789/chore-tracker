@@ -62,13 +62,15 @@ func main() {
 	// Launch a process per simulated user
 	g, ctx := errgroup.WithContext(ctx)
 	results := make([]*result, *users)
-	rawCmd := "echo hello && sleep 10"
+	rawCmd := "cd grpc-web-load && node grpc-web-load.mjs"
 
 	for i := 0; i < *users; i++ {
 		g.Go(func() error {
 			result, err := run(ctx, rawCmd)
 			if err != nil {
-				return err
+				// Include the output from the command for troubleshooting
+				s := fmt.Sprintf("%s\nAdditional info:\n%s\n", err, *result.output)
+				return errors.New(s)
 			}
 			results[i] = result
 			return nil

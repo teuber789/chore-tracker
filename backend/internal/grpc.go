@@ -16,6 +16,10 @@ type grpcSrv struct {
 	store ChoreTrackerStore
 }
 
+func (s *grpcSrv) AddFamily(ctx context.Context, req *gen.AddFamilyRequest) (*gen.Family, error) {
+	return s.store.AddFamily(ctx, req)
+}
+
 func (s *grpcSrv) AddChild(ctx context.Context, req *gen.AddChildRequest) (*gen.Child, error) {
 	return s.store.AddChild(ctx, req)
 }
