@@ -16,7 +16,11 @@ For convenience, this project is set up as a [monorepository](https://circleci.c
 
 - Make sure you have make installed
   - Run `brew install make`
-- Install the latest Golang
+- Make sure you have node installed
+- Make sure you have docker installed
+- Make sure you have python3 installed
+  - Run `brew install python3`
+- Make sure you have the latest Golang installed
 - Protobufs
   - Run `brew install protobuf`
   - Run `go install google.golang.org/protobuf/cmd/protoc-gen-go@latest`
@@ -24,10 +28,6 @@ For convenience, this project is set up as a [monorepository](https://circleci.c
 - Install required gRPC compilers
   - Run `go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest`
   - Run `brew install protoc-gen-grpc-web`
-- Make sure you have docker installed
-- Make sure you have npm installed
-- Make sure you have python3 installed
-  - Run `brew install python3`
 - Make sure you have Chrome installed
 
 The following are extremely useful for debugging, but not strictly necessary:
