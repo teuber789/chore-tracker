@@ -91,3 +91,4 @@ These are the features I intentionally chose to ignore for the sake of this prot
 - 2 Sep 2024:
   - Added load test script for GRPC
   - Added metrics to load test script
+  - Added load tests cript for HTTP (with metrics)

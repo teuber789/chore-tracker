@@ -49,7 +49,7 @@ func run(ctx context.Context, rawCmd string) (*result, error) {
 
 func main() {
 	// Read in args
-	// serverType := flag.String("server", "", "Specifies whether to load test the GRPC or the HTTP server. Valid values are 'grpc' and 'http'.")
+	serverType := flag.String("server", "", "Specifies whether to load test the GRPC or the HTTP server. Valid values are 'grpc' and 'http'.")
 	users := flag.Int("users", 1, "The number of concurrent users to mimic. Must be an integer greater than 0.")
 	seconds := flag.Int("seconds", 300, "The number of seconds the test should last. Must be an integer greater than 0.")
 	flag.Parse()
@@ -59,10 +59,23 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.TODO(), duration)
 	defer cancel()
 
+	// Which API are we load testing
+	// IRL, these file names wouldn't be hardcoded
+	var script string
+	if *serverType == "grpc" {
+		script = "grpc-web-load.mjs"
+	} else if *serverType == "http" {
+		script = "http-load.mjs"
+	}
+
+	if len(script) == 0 {
+		log.Fatal("unknown server type")
+	}
+
 	// Launch a process per simulated user
 	g, ctx := errgroup.WithContext(ctx)
 	results := make([]*result, *users)
-	rawCmd := "cd runner && node grpc-web-load.mjs"
+	rawCmd := fmt.Sprintf("cd runner && node %s", script)
 
 	for i := 0; i < *users; i++ {
 		g.Go(func() error {

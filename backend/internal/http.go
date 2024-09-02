@@ -19,8 +19,8 @@ func NewHttpRouter(store ChoreTrackerStore) (*mux.Router, error) {
 	r.HandleFunc("/chores", s.createChore).Methods("POST")
 	r.HandleFunc("/chores/{id}", s.deleteChore).Methods("DELETE")
 	r.HandleFunc("/chores", s.getChores).Methods("GET")
+	r.HandleFunc("/completions", s.markChoreCompleted).Methods("POST")
 	r.HandleFunc("/completions", s.getCompletedChores).Methods("GET")
-	r.HandleFunc("/completions/mark", s.markChoreCompleted).Methods("POST")
 
 	return r, nil
 }
@@ -153,6 +153,21 @@ func (s *httpSrv) getChores(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *httpSrv) markChoreCompleted(w http.ResponseWriter, r *http.Request) {
+	var body gen.MarkChoreCompletedRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err := s.store.MarkChoreCompleted(context.TODO(), &body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (s *httpSrv) getCompletedChores(w http.ResponseWriter, r *http.Request) {
 	req, err := s.getChoresRequest(r)
 	if err != nil {
@@ -171,35 +186,4 @@ func (s *httpSrv) getCompletedChores(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-}
-
-func (s *httpSrv) markChoreCompleted(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-
-	// IRL, handle failures better
-	famId, err := strconv.ParseUint(q.Get("familyId"), 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	childId, err := strconv.ParseUint(q.Get("childId"), 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	choreId, err := strconv.ParseUint(q.Get("choreId"), 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	req := gen.MarkChoreCompletedRequest{FamilyId: famId, ChildId: childId, ChoreId: choreId}
-	err = s.store.MarkChoreCompleted(context.TODO(), &req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
 }

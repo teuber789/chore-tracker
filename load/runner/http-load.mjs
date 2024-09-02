@@ -1,95 +1,98 @@
 #!/usr/bin/env node
 
-// This is an abomination, but it works for this project.
-// XMLHttpRequest is needed because grpc-web is intended for use in browsers only.
-// https://stackoverflow.com/a/77047149
-// https://stackoverflow.com/a/59214301
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url)
-global.XMLHttpRequest = require('xhr2');
-
-import pb from './chore_tracker_pb.js';
-import grpc from './chore_tracker_grpc_web_pb.js';
 import { randomBytes } from 'node:crypto';
 
-// Helper function that wraps client methods so their callbacks can be used as promises.
-// Necessary because grpc-web only has limited support for TypeScript + promises.
-function asPromise(f, req, metadata) {
-    return new Promise((resolve, reject) => {
-        f(req, metadata, (err, resp) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(resp);
-            }
-        });
+// IRL, these would be env vars
+const baseUrl = "http://127.0.0.1:8081";
+
+async function addFamily() {
+    const familyName = randomBytes(8).toString('hex');
+    const data = {
+        name: familyName,
+    };
+
+    const res = await fetch(`${baseUrl}/families`, {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+    return res.json();
+}
+
+async function addChild(family, num) {
+    const age = (Math.floor(Math.random() * 17)) + 1;
+    const data = {
+        family_id: family.id,
+        name: `Family ${family.id} Child ${num}`,
+        age: age,
+    };
+    
+    const res = await fetch(`${baseUrl}/children`, {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+    return res.json();
+}
+
+async function createChore(family, num) {
+    const name = `Family ${family.id} Chore ${num}`;
+    const price = Number(Math.random().toFixed(2));
+    const data = {
+        family_id: family.id,
+        name: name,
+        description: name,
+        price: price,
+    };
+
+    const res = await fetch(`${baseUrl}/chores`, {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+    return res.json();
+}
+
+async function getAllChores(family) {
+    const params = new URLSearchParams({
+        pageToken: "0",
+        pageSize: 100,
+        familyId: family.id,
+        childId: 1,  // This isn't actually used by the service
+    });
+    const url = `${baseUrl}/chores?${params.toString()}`;
+
+    const res = await fetch(url);
+    return res.json();
+}
+
+function markChoreCompleted(child, chore) {
+    const data = {
+        family_id: child.family_id,
+        child_id: child.id,
+        chore_id: chore.id,
+    };
+
+    return fetch(`${baseUrl}/completions`, {
+        method: "POST",
+        body: JSON.stringify(data),
     });
 }
 
-function addFamily(client) {
-    const req = new pb.AddFamilyRequest();
-    const familyName = randomBytes(8).toString('hex');
-    req.setName(familyName);
-    return asPromise(client.addFamily.bind(client), req, {});
-}
+async function getCompletedChores(child) {
+    const params = new URLSearchParams({
+        pageToken: "0",
+        pageSize: 100,
+        familyId: child.family_id,
+        childId: child.id,
+    });
+    const url = `${baseUrl}/chores?${params.toString()}`;
 
-function addChild(client, familyId, num) {
-    const age = (Math.floor(Math.random() * 17)) + 1;
-    const req = new pb.AddChildRequest();
-    req.setFamilyId(familyId);
-    req.setName(`Family ${familyId} Child ${num}`);
-    req.setAge(age);
-    return asPromise(client.addChild.bind(client), req, {});
-}
-
-function createChore(client, family, num) {
-    const name = `Family ${family.getId()} Chore ${num}`;
-    const price = Math.random().toFixed(2);
-    const req = new pb.CreateChoreRequest();
-    req.setFamilyId(family.getId());
-    req.setName(name);
-    req.setDescription(name);
-    req.setPrice(price);
-    return asPromise(client.createChore.bind(client), req, {});
-}
-
-function getAllChores(client, family) {
-    const pageable = new pb.Pageable();
-    pageable.setPageToken("0");
-    pageable.setPageSize(100);
-    const req = new pb.GetChoresRequest();
-    req.setPageable(pageable);
-    req.setFamilyId(family.getId());
-    req.setChildId(1);  // This isn't actually used by the service
-    return asPromise(client.getChores.bind(client), req, {});
-}
-
-function markChoreCompleted(client, child, chore) {
-    const req = new pb.MarkChoreCompletedRequest();
-    req.setFamilyId(child.getFamilyId());
-    req.setChildId(child.getId());
-    req.setChoreId(chore.getId());
-    return asPromise(client.markChoreCompleted.bind(client), req, {});
-}
-
-function getCompletedChores(client, child) {
-    const pageable = new pb.Pageable();
-    pageable.setPageToken("0");
-    pageable.setPageSize(100);
-    const req = new pb.GetChoresRequest();
-    req.setPageable(pageable);
-    req.setFamilyId(child.getFamilyId());
-    req.setChildId(child.getId());
-    return asPromise(client.getCompletedChores.bind(client), req, {});
+    const res = await fetch(url);
+    return res.json();
 }
 
 // Runs the load test sequence repeatedly until SIGKILL occurs.
 // TODO Simplify and clean up
 async function doLoadTest() {
     try {
-        // IRL, address and port would be env vars
-        const client = new grpc.ChoreTrackerClient('http://localhost:8080');
-
         // Metrics
         let itersFailed = 0;
         let itersSucceeded = 0;
@@ -125,7 +128,7 @@ async function doLoadTest() {
             // Add a family
             var family;
             try {
-                family = await addFamily(client);
+                family = await addFamily();
                 addFamilySucceeded++;
             } catch (err) {
                 console.log('Request to add family failed');
@@ -140,11 +143,11 @@ async function doLoadTest() {
             var child2;
             var child3;
             try {
-                child1 = await addChild(client, family.getId(), 1);
+                child1 = await addChild(family, 1);
                 addChildSucceeded++;
-                child2 = await addChild(client, family.getId(), 2);
+                child2 = await addChild(family, 2);
                 addChildSucceeded++;
-                child3 = await addChild(client, family.getId(), 3);
+                child3 = await addChild(family, 3);
                 addChildSucceeded++;
             } catch(err) {
                 console.log('Request to add child failed');
@@ -159,11 +162,11 @@ async function doLoadTest() {
             var chore2;
             var chore3;
             try {
-                chore1 = await createChore(client, family, 1);
+                chore1 = await createChore(family, 1);
                 createChoreSucceeded++;
-                chore2 = await createChore(client, family, 2);
+                chore2 = await createChore(family, 2);
                 createChoreSucceeded++;
-                chore3 = await createChore(client, family, 3);
+                chore3 = await createChore(family, 3);
                 createChoreSucceeded++;
             } catch(err) {
                 console.log('Request to create chore failed');
@@ -175,7 +178,7 @@ async function doLoadTest() {
             
             // Get all chores
             try {
-                await getAllChores(client, family);
+                await getAllChores(family);
                 getAllChoresSucceeded++;
             } catch(err) {
                 console.log('Request to get all chores failed');
@@ -191,7 +194,7 @@ async function doLoadTest() {
             for (const child of children) {
                 for (const chore of chores) {
                     try {
-                        await markChoreCompleted(client, child, chore);
+                        await markChoreCompleted(child, chore);
                         markChoreCompletedSucceeded++;
                     } catch(err) {
                         console.log('Request to mark chore completed failed');
@@ -206,7 +209,7 @@ async function doLoadTest() {
             // Each child retrieves all the chores they have done
             for (const child of children) {
                 try {
-                    await getCompletedChores(client, child);
+                    await getCompletedChores(child);
                     getCompletedChoresSucceeded++;
                 } catch(err) {
                     console.log('Request to get completed chores failed');
@@ -228,3 +231,4 @@ async function doLoadTest() {
 }
 
 doLoadTest();
+
