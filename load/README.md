@@ -21,3 +21,7 @@ go run main.go -server <grpc|http> -host 192.168.1.229 -seconds 3 -users 3
   - `host`: The host that the server is running on. Defaults to localhost if not specified.
   - `seconds`: The number of seconds the test should run before terminating. Defaults to 300 (5 minutes).
   - `users` The number of concurrent users the test should simulate. Defaults to 1.
+
+# Notes:
+
+- No load testing client I am aware of supports GRPC Web's protocol. As such, I could not use any of them to compare GRPC Web performance to that of a RESTful API. I wrote this load test runner to fill this gap.

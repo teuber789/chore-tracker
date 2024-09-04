@@ -2,6 +2,17 @@
 
 A simple app that tracks the chores a child can do for their parents in order to get money.
 
+# About
+
+This project has two purposes:
+
+- Showcase my skills with various technologies, including Golang backend development, GRPC, understanding of DDD, understanding of API best practices, etc.
+- Provide a playground to experiment with [GRPC Web](https://github.com/grpc/grpc-web). Prior to this project, I had never utilized it before and wanted to play around with it.
+
+That being said, this project is still a work in progress and has some rough edges (see the [future development section](#future-development)). It is not meant to be perfect, so much as to give a glimpse of what I am capable of.
+
+> Throughout the repository, I frequently make comments starting with `IRL`. These comments explain how something would be different if I were deploying the code to a production environment in real life.
+
 # Project Structure
 
 For convenience, this project is set up as a [monorepository](https://circleci.com/blog/monorepo-dev-practices/). In the real world, it would likely be split into several repos instead.
@@ -47,19 +58,18 @@ The following are extremely useful for debugging, but not strictly necessary:
   - `make [grpc|http]-up`. For example, to run the HTTP service, you would run `make http-up`.
 - When you're done and want to tear down the stack, simply run `make [grpc|http]-down`. For example, if you were running the HTTP server and are now done, run `make http-down`.
 
-> ⚠️ The frontend only works with the GRPC service. If you are using the HTTP service, there's no need to perform the next steps.
-
-- In a new terminal, build the frontend for browser use and then serve locally:
-  - `cd frontend`
-  - `make dist`
-  - `make serve`
-  - Open Chrome to `http://localhost:3000`
+To run the [frontend](./frontend/README.md) or the [load test application](./load/README.md), please see the READMEs in their respective directories.
 
 # Future Development
 
-These are the features I intentionally chose to ignore for the sake of this prototype. In the real world, these would obviously be addressed.
+These are areas I know this project can be improved upon.
 
-- Use a database instead of in-memory
+- The frontend webapp needs to be built out. Currently, it only runs an example app.
+- The data model isn't very flexible and doesn't allow for a variety of important use cases. It also creates a number of bugs. I recognize these but haven't fixed them yet.
+  - Chores shouldn't show up in the list of available chores after a child has completed them.
+  - Some chores can be performed more than once per day.
+  - Chore availability - certain chores might only be available on certain days, and therefore can only be completed on those days.
+  - Bug where all chores of a certain type are completed if multiple are performed
 - Real pagination (keyset instead of offset, with real next tokens)
 - Authentication and authorization
 - Permission-based access control (adults are allowed to create chores and children aren't, etc.)
@@ -69,10 +79,6 @@ These are the features I intentionally chose to ignore for the sake of this prot
 - Testing
 - Formatting / linting (and associated checks)
 - Better dependency injection (wire?)
-- Chores don't show up in the list of available chores after a child has completed them.
-- Some chores can be performed more than once per day.
-- Chore availability - certain chores might only be available on certain days, and therefore can only be completed on those days.
-- Bug where all chores of a certain type are completed if multiple are performed
 - Graceful HTTP server shutdown
 - Intermediate representation for structs instead of reusing GRPC structs everywhere
 
@@ -92,3 +98,4 @@ These are the features I intentionally chose to ignore for the sake of this prot
   - Added load tests cript for HTTP (with metrics)
   - Changed the server to run in a Docker container. This will make it easier to load test.
   - Added a host parameter to the load test binary. This makes possible to test against a service running on another machine.
+- 3 Sep 2024: Clarified purpose of repository and instructions.
